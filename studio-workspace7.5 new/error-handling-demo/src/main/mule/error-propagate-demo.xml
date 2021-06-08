@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="e629f608-e60e-4048-ba58-2d9eb22675e1" >
+		<http:listener-connection host="0.0.0.0" port="8085" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="3a3f2077-7d10-49f6-b82b-c4581a61bdbe" tracking:enable-default-events="false">
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="gecho709291" database="employees_database" />
+	</db:config>
+	<flow name="error-handling-demo" doc:id="3a3f2077-7d10-49f6-b82b-c4581a61bdbe" >
+		<http:listener doc:name="Listener" doc:id="7f31dc99-e51f-4a2f-aab3-a5fcd691e3c0" config-ref="HTTP_Listener_config" path="/emp_id" >
+			<http:error-response statusCode="#[vars.statusCode]" reasonPhrase="#[vars.reasonPhrase]" >
+				<http:body ><![CDATA[#[payload]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<validation:is-number doc:id="60a1d1c3-e1e1-4e36-bb4e-5151920db8b8" value="#[attributes.queryParams.id]" numberType="INTEGER" message='Id should be a number'/>
+		<db:select doc:id="c55b06b7-20ad-40cc-b583-cc447760bbf2" config-ref="Database_Config">
+			<db:sql><![CDATA[SELECT id, name, dept, grade, address FROM employees_tbl where  id= :id]]></db:sql>
+			<db:input-parameters><![CDATA[#[id:attributes.queryParams.id]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="57b2b490-b9d9-4fc6-b289-d2f24ae1a187">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"id": payload.id[0],
+	"name": payload.name[0],
+	"dept": payload.dept[0],
+	"grade": payload.grade[0],
+	"address": payload.address[0] 
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

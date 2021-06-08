@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="921c0706-6e64-4ef6-8f5c-e32cd6edcc00" >
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="728a7fd6-a1da-4c45-bca0-cca2f38081af" >
+		<db:my-sql-connection host="${db.Host}" port="${db.Port}" user="${db.User}" password="${db.Password}" database="students_database" />
+	</db:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="636e63e0-e617-4aa4-bbef-e283bffd83df" file="dev.properties" />
+	<global-property doc:name="Global Property" doc:id="96c44d6e-eeb3-42b5-81f3-db1d88c3b8a3" name="dev-property" value="dev" />
+	<flow name="flatten-exampleFlow" doc:id="1d249803-7104-411b-b88c-31d774602e18" >
+		<ee:transform doc:name="Transform Message" doc:id="8b285e65-6243-4317-8694-1501862437ee" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var empList = [
+	   { 
+		empId: 100,
+		empName:  "Geta",
+		empStatus:  "A"
+		},
+		{
+		empId: 101,
+		empName: "Biruk",
+		empStatus: "I"
+		},
+		[{
+		empId: 102,
+		empName: "Tuem",
+		empStatus: "B"
+		},
+		{
+		empId: 103,
+		empName: "Brie",
+		empStatus: "A"
+		}]
+		]
+---
+{
+	"employees": empList
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="flatten" doc:id="9f49ee90-36c0-4666-8b1d-2f9fdbf7779a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+var empList = [
+	   { 
+		empId: 100,
+		empName:  "Geta",
+		empStatus:  "A"
+		},
+		{
+		empId: 101,
+		empName: "Biruk",
+		empStatus: "I"
+		},
+		[{
+		empId: 102,
+		empName: "Tuem",
+		empStatus: "B"
+		},
+		{
+		empId: 103,
+		empName: "Brie",
+		empStatus: "A"
+		}]
+		]
+---
+{
+	"employees": flatten(empList)
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="pluck-inserting-to-database" doc:id="a8af2cf8-e83d-4a51-9781-18905cd32908" >
+		<http:listener doc:name="Listener" doc:id="c993ae0a-e5dc-425b-be2d-ddc6f705d58f" config-ref="HTTP_Listener_config" path="/pluck"/>
+		<logger level="INFO" doc:name="Logger" doc:id="031f2bed-59ae-4fa2-be49-9b68514646c2" message="logger before retrieving"/>
+		<ee:transform doc:name="Transform Message" doc:id="59fbac3e-02f8-4ffe-9792-214c4c51511d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	studId: payload.id,
+	studName: payload.name,
+	studDept: payload.dept,
+	studGrade: payload.grade,
+	studAddress: payload.address pluck $ joinBy(",")
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:insert doc:name="Insert" doc:id="817f247f-f50c-44e8-a3e8-795e39677a9e" config-ref="Database_Config">
+			<db:sql ><![CDATA[insert into students_tbl (id ,  name, dept,  age,  gender,address) values(:id , :name , :dept, :age, :gender, :address);]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+ id:attributes.queryParams.id,
+ name:attributes.queryParams.name,
+ dept: attributes.queryParams.dept,
+ age :attributes.queryParams.age,
+ gender: attributes.queryParams.gender,
+ address: attributes.queryParams.address
+}]]]></db:input-parameters>
+		</db:insert>
+		<logger level="INFO" doc:name="Logger" doc:id="55bf4f95-d1ab-4506-9008-ccedf7c83954" />
+	</flow>
+	<flow name="flatten-exampleFlow1" doc:id="7cba0218-b6be-4385-870c-6c92e119ec75">
+		<ee:transform doc:name="pluck" doc:id="0c28038f-f661-49d9-8565-90b1c601a634">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+var empList = 
+	   { 
+		empId: 100,
+		empName:  "Geta",
+		empStatus:  "A"
+		}
+---
+{
+	"keysOfEmployees": empList pluck $$,
+	"valuesOfEmployees": empList pluck $
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

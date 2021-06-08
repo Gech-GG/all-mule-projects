@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<file:config name="File_Config" doc:name="File Config" doc:id="fe87beb0-ef9b-4be3-a9c6-d642f510d68d" >
+		<file:connection workingDir="C:\Users\Owner\Desktop\batch-processing\in-file" />
+	</file:config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="bd529bd7-89d0-454d-951c-0ffa724dbd74" >
+		<db:my-sql-connection host="loalhost" port="3306" user="root" password="gech709291" database="employees_database" />
+	</db:config>
+	<flow name="batch-processing-demoFlow" doc:id="59a8c094-9a44-4ac6-a54b-7cfa369043ce" >
+		<file:listener doc:id="3f0d2c83-dd49-45a5-87b9-38d686660e0f" config-ref="File_Config" autoDelete="true" moveToDirectory="C:\Users\Owner\Desktop\batch-processing\out-file" outputMimeType="application/csv" renameTo="#[attributes.fileName]">
+			<scheduling-strategy >
+				<fixed-frequency />
+			</scheduling-strategy>
+		</file:listener>
+		<set-variable value="#[attributes.fileName]" doc:name="Set Variable" doc:id="e9647de8-6f39-4bfc-9cc7-f666d388ea38" variableName="inputFileName"/>
+		<ee:transform doc:name="Transform CSV to java" doc:id="40b44602-389f-4dd7-8c42-95b70dcfccd7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload  map(value ,indexOfvalue) ->{
+	id: value.id,
+	name: value.name,
+	dept: value.dept,
+	grade: value.grade,
+	address: value.address
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<batch:job jobName="batch-error-handling-demoBatch-Job" doc:id="639eb481-3ae1-4dc5-8024-7dee8104afa9" >
+			<batch:process-records >
+				<batch:step name="Batch_Step1" doc:id="0a0ad657-ef7f-4750-b834-6355cee23836" >
+					<db:insert doc:name="Insert" doc:id="4695cccf-8630-4c43-a490-b38fa7e48473" config-ref="Database_Config">
+						<db:sql ><![CDATA[insert into students_tbl (id ,  name, dept,  age,  gender) values(:id , :name , :dept, :age, :gender);]]></db:sql>
+					</db:insert>
+				</batch:step>
+				<batch:step name="Batch_Step" doc:id="e2c79116-a831-46af-9540-6d81580a499a" />
+			</batch:process-records>
+		</batch:job>
+	</flow>
+</mule>

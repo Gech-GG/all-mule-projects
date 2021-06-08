@@ -1,0 +1,7 @@
+{
+ "id":1,
+ "name": "GG",
+ "dept": "dev",
+ "age" : 10,
+ "gender" : "m"
+ }

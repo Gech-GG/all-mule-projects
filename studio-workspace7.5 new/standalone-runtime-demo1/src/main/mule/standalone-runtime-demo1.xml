@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="b8d4f71e-bdd2-47ad-bd71-a9517541655f" >
+		<http:listener-connection host="0.0.0.0" port="${http.port}" />
+	</http:listener-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="a7a11dbc-9f57-4eb0-b07b-293a005c8764" file="dev.properties" />
+	<flow name="standalone-runtime-demo1Flow" doc:id="1b3c2797-c1dc-43ab-8e9b-24e3a3fd8ec5" >
+		<http:listener doc:name="Listener" doc:id="daa85ecd-852b-4aca-a0cc-ddb78647f297" config-ref="HTTP_Listener_config" path="/stand"/>
+		<set-payload value="**This is our demo**" doc:name="Set Payload" doc:id="d08ec467-d18e-4e20-950d-6d79b6251614" />
+	</flow>
+</mule>

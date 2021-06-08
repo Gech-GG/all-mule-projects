@@ -1,0 +1,12 @@
+!SESSION 2021-06-06 08:58:07.269 -----------------------------------------------
+eclipse.buildId=unknown
+java.version=1.8.0_232
+java.vendor=AdoptOpenJDK
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=en_US
+Command-line arguments:  -os win32 -ws win32 -arch x86_64
+
+This is a continuation of log file C:\Users\Owner\AnypointStudio\studio-workspace7.5 new\.metadata\.bak_0.log
+Created Time: 2021-06-06 09:47:06.309
+
+!ENTRY org.mule.tooling.ui.contribution.munit 1 1 2021-06-06 09:47:06.310
+!MESSAGE Deleting MUnit temporary folder in C:\Users\Owner\AppData\Local\Temp\munit-temp-dir

@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="pluckExample" format="json">
+      <types:shape format="weave" example="examples/examplePluck"><![CDATA[%dw 2.0
+
+type pluckExample = {|
+  id: Number {"typeId": "int"}, 
+  name: String, 
+  dept: String, 
+  grade: String, 
+  address: {|
+    street: String, 
+    city: String, 
+    state: String, 
+    postalCode: String
+  |}
+|} {"example": "{\\\"id\\\":100,\\\"name\\\":\\\"Hani\\\",\\\"dept\\\":\\\"Eng\\\",\\\"grade\\\":\\\"A\\\",\\\"address\\\":{\\\"street\\\":\\\"Elder Ave\\\",\\\"city\\\":\\\"Ch\\\",\\\"state\\\":\\\"NC\\\",\\\"postalCode\\\":\\\"11111\\\"}}"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#59fbac3e-02f8-4ffe-9792-214c4c51511d">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="pluckExample"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

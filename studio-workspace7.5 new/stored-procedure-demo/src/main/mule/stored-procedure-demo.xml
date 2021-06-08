@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="eed73e2d-a051-4ff6-8902-56b62a9a2e32" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="stored-procedure-demoFlow" doc:id="2d8036b2-ec4a-44b2-ac16-e0d5fc29c96b" >
+		<http:listener doc:name="Listener" doc:id="de712202-bbf8-4e1b-b1a9-7e74fc856bb2" config-ref="HTTP_Listener_config" path="/getemps"/>
+		<set-payload value="#[message.attributes.queryParams.emp]" doc:name="Set Payload" doc:id="c8cf5b87-030a-4707-89e0-b54656493769" />
+	</flow>
+</mule>

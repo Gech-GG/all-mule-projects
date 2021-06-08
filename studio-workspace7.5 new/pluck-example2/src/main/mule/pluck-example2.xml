@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="a66aa474-3953-438b-ad10-d0b02013bb6b" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="355955e5-68f1-4282-9c9f-66f50a523622" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="gecho709291" database="employees_database" />
+	</db:config>
+	<flow name="pluck-inserting-to-database" doc:id="de911a7f-bd12-40e9-a084-4ba21cabd786" >
+		<http:listener doc:name="Listener" doc:id="b040f16b-3292-48c8-92fd-f7bcf390152d" config-ref="HTTP_Listener_config" path="/students" allowedMethods="POST"/>
+		<logger level="INFO" doc:name="Logger" doc:id="59f8381f-8a0b-42db-9f11-3e556d36dbe8" message="logger before retrieving: #[payload]" />
+		<ee:transform doc:name="Transform Message" doc:id="67891b29-e92a-4386-95b5-677f8f46e93f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	id: payload.id,
+	name: payload.name,
+	dept: payload.dept,
+	grade: payload.grade,
+	address: payload.address pluck $ joinBy(",") 
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:insert doc:name="Insert" doc:id="88c417e6-0f7f-4fb9-9d6d-fee17052af05" config-ref="Database_Config">
+			<db:sql ><![CDATA[insert into employees_database.employees_tbl (id , name, dept, grade, address) values (:id , :name , :dept, :grade, :address);]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+ id: payload.id,
+ name:payload.name,
+ dept: payload.dept,
+ grade: payload.grade,
+ address: payload.address
+}]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Transform Message" doc:id="53f2f130-c7cf-4f42-a978-21255b62f755" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="3b5bbb86-9873-4722-aad1-6c25d332f5be" message="logger after insert: #[payload]"/>
+	</flow>
+</mule>

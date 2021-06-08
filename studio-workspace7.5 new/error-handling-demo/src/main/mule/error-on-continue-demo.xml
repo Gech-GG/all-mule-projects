@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config1" doc:name="HTTP Listener config" doc:id="7bea8018-2da8-43e3-b01b-16d0fa1cbae8" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<sub-flow name="fetch-employee" doc:id="da916208-6573-4e8e-82a0-07f2d5eb13d2" >
+		<try doc:name="Try" doc:id="bb698ff1-7d94-406f-8651-e3d2b3ec5f73" >
+			<logger level="INFO" doc:name="Logger" doc:id="1b6d8828-9a62-46c7-9c9b-b4a3b50fef27" message="start db call "/>
+			<db:select doc:name="Select" doc:id="f0e6b212-275b-40e2-8872-bd1f29d83e4a" config-ref="Database_Config">
+			<db:sql><![CDATA[SELECT id, name, dept, grade, address FROM employees_tbl where  id= :id]]></db:sql>
+			<db:input-parameters><![CDATA[#[id:attributes.queryParams.id]]]></db:input-parameters>
+		</db:select>
+			<logger level="INFO" doc:name="Logger" doc:id="36f6d72f-547e-4936-8876-02b09a141421" message="end db call"/>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="c0c4a1ef-733e-4a6e-a879-71648e733115" >
+					<logger level="INFO" doc:name="Logger" doc:id="59024685-beb3-4b7a-8ddb-8fed81598171" message="error occured"/>
+				</on-error-continue>
+			</error-handler>
+		</try>
+	</sub-flow>
+	<flow name="error-on-continue-demo" doc:id="64d924cc-5c54-4c1a-a38e-a8a0e87b93c1" >
+		<http:listener doc:name="Listener" doc:id="2e932907-7865-4b96-9e7a-589b17796d98" config-ref="HTTP_Listener_config1" path="/empId" >
+			<http:error-response statusCode="#[vars.statusCode]" reasonPhrase="#[vars.reasonPhrase]" >
+				<http:body ><![CDATA[#[payload]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<validation:is-number numberType="INTEGER" doc:name="Is number" doc:id="f1e0fff3-e72f-4828-80fc-c3a422096bf9" value="#[attributes.queryParams.id]" message="Id should be a number" />
+		<flow-ref doc:name="Flow Reference" doc:id="d73e06b4-1d10-4351-a69f-dbac7a387756" name="fetch-employee" />
+		<ee:transform doc:name="Transform Message" doc:id="64a280b5-9c66-460e-8f3c-69544b321cdf" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"id": payload.id[0],
+	"name": payload.name[0],
+	"dept": payload.dept[0],
+	"grade": payload.grade[0],
+	"address": payload.address[0] 
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="33ceb610-91ce-4c51-8ce1-b5390bcdf8ef" message="payload after failure"/>
+	</flow>
+</mule>

@@ -1,0 +1,13 @@
+{
+ "id": 100,
+ "name": "Hani",
+ "dept": "Eng",
+ "grade": "A",
+ "address":
+     {  "street": "Elder Ave",
+	     "city": "Ch",
+		 "state": "NC",
+		 "postalCode": "11111"
+     }
+
+}

@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="inputCSV" format="csv">
+      <types:shape format="weave" example="examples/csvSample.csv"><![CDATA[%dw 2.0
+
+type inputCSV = Array<{|  id: String,   "	name": String,   "	dept": String,   "	age": String,   "	gender": String,   "	country": String|}> {"isQuotedString": "false",
+"header": "true",
+"headerLineNumber": "0"}
+
+]]></types:shape>
+      <types:properties>
+        <types:property name="headerLineNumber" value="0"/>
+        <types:property name="header" value="true"/>
+        <types:property name="isQuotedString" value="false"/>
+      </types:properties>
+    </types:type>
+    <types:type name="outputJson" format="json">
+      <types:shape format="weave" example="examples/ouptput.json"><![CDATA[%dw 2.0
+
+type outputJson = {|
+  id: Number {"typeId": "int"}, 
+  name: String, 
+  dept: String, 
+  age: Number {"typeId": "int"}, 
+  gender: String
+|} {"example": "{\\\"id\\\":1,\\\"name\\\":\\\"GG\\\",\\\"dept\\\":\\\"dev\\\",\\\"age\\\":10,\\\"gender\\\":\\\"m\\\"}"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#25318f73-e53b-4559-a31e-2d776c25d350">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="inputCSV"/>
+        </types:message>
+      </types:input-event>
+      <types:output-event>
+        <types:message>
+          <types:payload type="outputJson"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

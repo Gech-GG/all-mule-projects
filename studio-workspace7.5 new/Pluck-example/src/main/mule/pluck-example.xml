@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="8712c01d-b6c6-4c81-a392-7a0a64af7144" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="spluck-exampleFlow" doc:id="dc6ec093-4b29-4c42-98af-fd8d7b024338" >
+		<http:listener doc:name="Listener" doc:id="6afb7484-6ca9-4787-a4b2-b822f137169b" config-ref="HTTP_Listener_config" path="/pluck"/>
+		<ee:transform doc:name="Transform Message" doc:id="6a415ee9-2d99-4942-9bdd-58e80f6575b9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+import * from dw::core::Arrays
+fun pluckValues(entity)= entity pluck $ as String
+---
+{
+employees:payload.*employee map(data, position) ->
+ {
+	name: data.firstName,
+	addressValue: data.address pluck $,
+	phoneNumbers: data.phoneNumbers pluck $,
+    phoneType: data.phoneNumbers pluck $$,
+	phoneNumber: pluckValues(data.phoneNumbers)
+  }
+
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="0f161770-a204-4cad-9b25-66f7d0b1bad9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+---
+payload
+
+
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="4c02aabc-29e3-499f-bf22-68d015b571df" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.users.*user]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
